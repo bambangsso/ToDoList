@@ -35,7 +35,7 @@ export function useTodoActions() {
     }
   }, [showError]); 
 
-  const updateTodo = useCallback(async (id: string, updates: Partial<Todo>) => {
+  const updateTodo = useCallback(async (id: string, updates: Partial<Todo>): Promise<void> => {
     const supabase = await createWebClient();
     try {
       const { error } = await supabase
@@ -44,14 +44,14 @@ export function useTodoActions() {
         .eq("id", id);
 
       if (error) throw error;
-      return true;
+
     } catch (error: any) {
       showError(error.message);
-      return false;
+
     }
   }, [showError]);
 
-  const deleteTodo = useCallback(async (id: string) => {
+  const deleteTodo = useCallback(async (id: string): Promise<void> => {
     const supabase = await createWebClient();
     try {
       const { error } = await supabase
@@ -60,10 +60,10 @@ export function useTodoActions() {
         .eq("id", id);
 
       if (error) throw error;
-      return true;
+
     } catch (error: any) {
       showError(error.message);
-      return false;
+
     }
   }, [showError]);
 
