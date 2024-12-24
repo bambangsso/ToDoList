@@ -5,8 +5,11 @@ import { useError } from "./use-error";
 export function useAuthError() {
   const { showError } = useError();
 
-  const handleAuthError = (error: Error) => {
+  const handleAuthError = (error: any) => {
     // Map common Supabase auth errors to user-friendly messages
+    if (error.code) {
+      error.message = error.code
+    }
     const errorMessage = (() => {
       const message = error.message.toLowerCase();
       

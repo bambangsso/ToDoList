@@ -130,11 +130,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
 import { useAuthError } from "@/hooks/use-auth-error";
 import { useAuthFeedback } from "@/hooks/use-auth-feedback";
 import { AuthProviders } from "./auth-providers";
 import { Icons } from "@/components/icons";
+import { signUp, signInWithPassword } from "./actions";
+import { createWebClient } from "@/lib/supabase/client"; 
 
 export function AuthForm() {
   const [email, setEmail] = useState("");
@@ -166,24 +167,21 @@ export function AuthForm() {
       validateForm();
 
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
-        });
+        const result = await signUp(email, password, `${location.origin}/auth/callback`);
+        const { error } = JSON.parse(result);
+
         if (error) throw error;
-        showSuccess("Account created successfully! You can now sign in.");
+        showSuccess("We have sent email confirmation. Please check your email to continue");
         setIsSignUp(false);
+
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        const result = await signInWithPassword(email, password);
+        const { error } = JSON.parse(result);
+
         if (error) throw error;
         showSuccess("Signed in successfully!");
       }
+
     } catch (error: any) {
       handleAuthError(error);
     } finally {
@@ -191,22 +189,30 @@ export function AuthForm() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
+  async function signInWithGoogle(redirectTo: string) {
+    const supabase = await createWebClient();
+    await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
           },
         },
-      });
-      if (error) throw error;
+      });        
+  }  
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      const result = await signInWithGoogle(`${location.origin}/auth/callback`);    
+      //if (error) throw error;
+
     } catch (error: any) {
       handleAuthError(error);
+      setIsLoading(false);
+    }finally {
       setIsLoading(false);
     }
   };

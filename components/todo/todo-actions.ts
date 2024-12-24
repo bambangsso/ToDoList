@@ -1,6 +1,6 @@
 "use client";
 
-import { supabase } from "@/lib/supabase";
+import { createWebClient } from "@/lib/supabase/client";
 import { Todo } from "@/types/database";
 import { useError } from "@/hooks/use-error";
 import { useCallback } from "react";
@@ -9,6 +9,7 @@ export function useTodoActions() {
   const { showError } = useError();
 
   const addTodo = useCallback(async (title: string) => {
+    const supabase = await createWebClient();
     try {
       if (!title.trim()) {
         throw new Error("Todo title cannot be empty");
@@ -32,9 +33,10 @@ export function useTodoActions() {
       showError(error.message);
       return false;
     }
-  }, [showError]);
+  }, [showError]); 
 
   const updateTodo = useCallback(async (id: string, updates: Partial<Todo>) => {
+    const supabase = await createWebClient();
     try {
       const { error } = await supabase
         .from("todos")
@@ -50,6 +52,7 @@ export function useTodoActions() {
   }, [showError]);
 
   const deleteTodo = useCallback(async (id: string) => {
+    const supabase = await createWebClient();
     try {
       const { error } = await supabase
         .from("todos")
